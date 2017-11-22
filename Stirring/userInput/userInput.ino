@@ -14,9 +14,8 @@ Serial.begin(9600);
 void loop() {
   
   if (Serial.available() == 0) {    //Checks if input field has no value
-  
-    Serial.print("Current value : "); //input_rpm remains unchanged
-    Serial.println(input_rpm);
+   
+    Serial.println(input_rpm);      //input_rpm remains unchanged
   }
   
   else {                        //input field has a value
