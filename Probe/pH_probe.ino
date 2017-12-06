@@ -1,60 +1,67 @@
-#define pH_read P1_4
-#define Acid P1_5
-#define Alkali P1_6
+#include <stdio.h>
+#include <math.h>
+#define Faraday 9.6485309*pow(10,4)
+#define R 8.314510
+#define ln10 2.302585093
+#define VpH P1_4
+#define acidPump P1_5
+#define basePump P1_6
 
-int VpH = 0;
-int pH = 0;
-int pH_upper = 7;
-int pH_lower = 3;
+float T = 17.7 + 273; // temprature used to calculate sensitivity
+const int pH_maintain = 5;
 
-double pH_get(int initial_data)
+float pHX = 0;
+int pumpLim = 10;//number of pump activation possible to prevent overflow
+
+int limit = 10;
+void setup()
 {
-  initial_data -= 512;
-  double pH_value;
-
-  // using equation to turn output into pH
-
-  pH_value = 7 + (((399.6 - initial_data) * 96485) / (8.314510 * temp * 2.302585));
-  return pH_value;
-
+  Serial.begin(9600);
+  pinMode(acidPump, OUTPUT);
+  pinMode(basePump, OUTPUT);
+  pinMode(VpH, INPUT);
 }
-void setup ()
-{
-  Serial.begin (9600);
-  pinMode(pH_read,INPUT);
-  pinMode(Acid,OUTPUT);
-  pinMode(Alkali,OUTPUT);
-}
-
 void loop()
 {
-  VpH = analogRead(pH_read);
 
-  pH = pH_get(VpH); //apply the equation on the rawdata to find pH
+  // read the electric potential at pH measuring electrode value
+  // correct the value
+  pHX = calcX(analogRead(VpH) * (2.9/100000));
 
-  Serial.println(pH);
+  int acidPumpct = 0; //number of pump activation
 
-  // ADD ACID if the pH is higher than 7
-  if(pH > pH_upper )
+  //display on serial
+
+  Serial.print("pH value of solution is:  ");
+  Serial.println(pHX);
+  if(acidPumpct <= pumpLim)
   {
-
-   digitalWrite(Acid,HIGH);
-   delay(10000);
-   digitalWrite(Acid,LOW);
-   delay(1000);
-
+    if (pHX > pH_maintain)
+    {
+      digitalWrite(acidPump, HIGH); //turn on acid pump
+      acidPumpct = acidPumpct + 1;
+    }
+    else if (pHX < pH_maintain)
+    {
+      digitalWrite(basePump, HIGH); //turn on base pump
+      acidPumpct = acidPumpct + 1;
+    }
   }
+  delay(1000);
+  digitalWrite(acidPump, LOW); //turn both off
+  digitalWrite(basePump, LOW);
 
-   // Add alkali if the pH is lower than 3
-  else if (pH < pH_lower)
-  {
+}
 
-   digitalWrite(Alkali,HIGH)
-   delay(10000);
-   digitalWrite(Alkali,LOW);
-   delay(1000);
+float calcX(double Ex)
+{
+  // Ex is the Electric potential at pH-measuring electrode
+  Serial.print("The Ex is: ");
+  Serial.println(Ex);
+  float X;
 
-  }
+ //turn the output into pH using equation
+  X = 7 + (((190*2.9/100000 - Ex)*Faraday)/(R*T*ln10));
 
-
+  return X;
 }
