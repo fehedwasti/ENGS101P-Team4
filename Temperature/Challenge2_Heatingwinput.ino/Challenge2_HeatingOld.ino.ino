@@ -6,14 +6,14 @@
 
 #include<math.h>
 int buttonstate = 0;
-int RAWTemp = 0;
-int Temperature = 0;
-
+double RAWTemp = 0;
+double Temperature = 0;
+double MediumTemp = 30;
 
 /*Steinhart-Hart Equation*/
 
 double getTemperature(int rawADC) {
-rawADC -= 400; // Modify the input value to calibrate the temperature.
+rawADC += 3; // Modify the input value to calibrate the temperature.*/
 double temp;
 temp = logf(((10240000/rawADC) - 10000));
 temp = 1 / (0.001129148 +
@@ -26,9 +26,9 @@ return temp - 273.15; // Convert Kelvin to Celsius
 void setup() {
 
 Serial.begin(9600);
-pinMode(2, INPUT);
+pinMode(P1_0, INPUT);
 pinMode(PUSH2, INPUT_PULLUP);
-pinMode(8, OUTPUT);
+pinMode(P2_0, OUTPUT);
 
   
 }
@@ -36,8 +36,14 @@ pinMode(8, OUTPUT);
 /********************************************************************************/
 
 void loop() {
+Serial.println("Waiting");
+if (Serial.available() != 0) {   
+    MediumTemp = Serial.parseInt();    
+    Serial.print("SETTING A NEW VALUE OF:");
+    Serial.println(MediumTemp);
+    delay(1000);
+  }
 
-Serial.println("HW");  
   /*Pressing the button will turn the heater controller system on.*/
   if(digitalRead(PUSH2) == LOW)
   {
@@ -49,11 +55,10 @@ Serial.println("HW");
   {
     /*Pressing the button again will turn the system off.*/
     
-    RAWTemp = analogRead(2);
     /*Use Steinhart-Hart equation to get temperature*/
-    Temperature = getTemperature(RAWTemp);
+    Temperature = getTemperature(analogRead(P1_0));
     /*For Testing*/
-    Serial.println(RAWTemp);
+    Serial.println(Temperature);
     if(digitalRead(PUSH2) == LOW)
     {
       buttonstate = 0;
@@ -84,24 +89,38 @@ Serial.println("HW");
     }
 */
     /*Digital control system*/
-    
-    if (Temperature < 28)
+
+    if (Temperature < MediumTemp - 2)
     {
-      digitalWrite(8, HIGH);
+      digitalWrite(P2_0, HIGH);
       delay(10000);
-      digitalWrite(8, LOW);
-      delay(1000);
+      digitalWrite(P2_0, LOW);
+      delay(300);
     }
-    else if(Temperature >= 28 && Temperature <= 32)
+    else if(Temperature >= MediumTemp - 2 && Temperature < MediumTemp - 0.5)
     {
-      digitalWrite(8, HIGH);
+      digitalWrite(P2_0, HIGH);
       delay(4000);
-      digitalWrite(8, LOW);
+      digitalWrite(P2_0, LOW);
+      delay(3000);
+    }
+    else if(Temperature >= MediumTemp - 0.5 && Temperature < MediumTemp + 0.5)
+    {
+      digitalWrite(P2_0, HIGH);
+      delay(2000);
+      digitalWrite(P2_0, LOW);
+      delay(2000);
+    }
+    else if(Temperature >= MediumTemp + 0.5 && Temperature < MediumTemp + 2)
+    {
+      digitalWrite(P2_0, HIGH);
+      delay(1000);
+      digitalWrite(P2_0, LOW);
       delay(3000);
     }
     else if(Temperature > 32)
     {
-      digitalWrite(8, LOW);
+      digitalWrite(P2_0, LOW);
       delay(2000);
       
     }
