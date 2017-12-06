@@ -12,8 +12,9 @@ void loop() {
   
   
   while (sensorStatus == initialStatus){    //Waits until state changes
-    Serial.println("HELLO");
+    Serial.println("1st WHILE LOOP");
     sensorStatus = digitalRead(sensorPin);  //Status != Initial
+
 
   }
   int oppositeStatus = sensorStatus ;   //Opposite to initialStatus
@@ -22,6 +23,7 @@ void loop() {
   
   for (int i = 0; i < 2; i++){ 
     while (sensorStatus != initialStatus){
+      Serial.println("2nd WHILE LOOP");
       sensorStatus = digitalRead(sensorPin);
     }
     initialStatus = oppositeStatus;
