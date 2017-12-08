@@ -6,21 +6,16 @@
 
 #include<math.h>
 int buttonstate = 0;
-double RAWTemp = 0;
-double Temperature = 0;
 double MediumTemp = 30;
 
-/*Steinhart-Hart Equation*/
+    double getTemperature(double resistence){
+      //This function calculate the temperature of the water according to the steinhart-hart equation and return the value rounded to the nearest 0.1 degree celsius
+      double temp = 1/(0.001257995159 + 0.0002205992525 * logf(resistence) + 0.00000008220364928 * powf(logf(resistence), 3));
+      temp = floor(temp * 10 + 0.5 )/10;
+      return temp;
+    }
 
-double getTemperature(int rawADC) {
-rawADC += 3; // Modify the input value to calibrate the temperature.*/
-double temp;
-temp = logf(((10240000/rawADC) - 10000));
-temp = 1 / (0.001129148 +
-(0.000234125 + (0.0000000876741 * temp * temp ))* temp );
-return temp - 273.15; // Convert Kelvin to Celsius
-//return (temp * 9.0)/ 5.0 + 32.0; // Celsius to Fahrenheit 
-}
+
 
 
 void setup() {
@@ -53,16 +48,19 @@ if (Serial.available() != 0) {
 
   while(buttonstate == 1)
   {
+    double rawVoltageReading = analogRead(P1_0);
+    double voltage = rawVoltageReading / 880 * 3.3;
+    double thermistorResistence = (3.3 - voltage)/ (voltage - 0.0) * 10000;
+    double Temperature = getTemperature(thermistorResistence);
+    Temperature -= 273.15;
     /*Pressing the button again will turn the system off.*/
-    
-    /*Use Steinhart-Hart equation to get temperature*/
-    Temperature = getTemperature(analogRead(P1_0));
+
     /*For Testing*/
     Serial.println(Temperature);
     if(digitalRead(PUSH2) == LOW)
     {
       buttonstate = 0;
-      delay(15000);
+      delay(10000);
     }
 
     /*
@@ -104,26 +102,13 @@ if (Serial.available() != 0) {
       digitalWrite(P2_0, LOW);
       delay(3000);
     }
-    else if(Temperature >= MediumTemp - 0.5 && Temperature < MediumTemp + 0.5)
-    {
-      digitalWrite(P2_0, HIGH);
-      delay(2000);
-      digitalWrite(P2_0, LOW);
-      delay(2000);
-    }
-    else if(Temperature >= MediumTemp + 0.5 && Temperature < MediumTemp + 2)
-    {
-      digitalWrite(P2_0, HIGH);
-      delay(1000);
-      digitalWrite(P2_0, LOW);
-      delay(3000);
-    }
-    else if(Temperature > 32)
+    else if(Temperature >= MediumTemp - 0.5)
     {
       digitalWrite(P2_0, LOW);
       delay(2000);
       
     }
+
     
   }
 
