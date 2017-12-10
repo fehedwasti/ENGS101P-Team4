@@ -11,9 +11,8 @@ float T = 17.7 + 273; // temprature used to calculate sensitivity
 const int pH_maintain = 5;
 
 float pHX = 0;
-int pumpLim = 10;//number of pump activation possible to prevent overflow
 
-int limit = 10;
+
 void setup()
 {
   Serial.begin(9600);
@@ -28,30 +27,26 @@ void loop()
   // correct the value
   pHX = calcX(analogRead(VpH) * (2.9/100000));
 
-  int acidPumpct = 0; //number of pump activation
-
+  
   //display on serial
 
   Serial.print("pH value of solution is:  ");
   Serial.println(pHX);
-  if(acidPumpct <= pumpLim)
-  {
+  
     if (pHX > pH_maintain)
     {
       digitalWrite(acidPump, HIGH); //turn on acid pump
-      acidPumpct = acidPumpct + 1;
+      delay(1000);
+      digitalWrite(acudPump,LOW);
     }
     else if (pHX < pH_maintain)
     {
       digitalWrite(basePump, HIGH); //turn on base pump
-      acidPumpct = acidPumpct + 1;
+      delay(1000);
+      digitalWrite(basePump,Low);
     }
   }
-  delay(1000);
-  digitalWrite(acidPump, LOW); //turn both off
-  digitalWrite(basePump, LOW);
 
-}
 
 float calcX(double Ex)
 {
