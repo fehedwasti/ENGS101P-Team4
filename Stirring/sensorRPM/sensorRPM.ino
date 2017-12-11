@@ -1,12 +1,16 @@
 int sensorPin = 3; // P1.1
+int PWM = 9;  //P1.2
 
 void setup() {
   Serial.begin(9600);
   pinMode(sensorPin, INPUT);
+  pinMode(PWM, OUTPUT);
+  analogWrite(PWM, 125);
+  
 }
 
 void loop() {
-  float time;
+  double time;
   int sensorStatus = digitalRead(sensorPin);
   int initialStatus = sensorStatus;    //Initialise inital status
   
@@ -19,7 +23,7 @@ void loop() {
   }
   int oppositeStatus = sensorStatus ;   //Opposite to initialStatus
   
-  float t0 = micros();  //Start timer
+  double t0 = micros();  //Start timer
   
   for (int i = 0; i < 2; i++){ 
     while (sensorStatus != initialStatus){
@@ -28,7 +32,7 @@ void loop() {
     }
     initialStatus = oppositeStatus;
   }
-  float t1 = micros();  //Stop timer once status has changed.
+  double t1 = micros();  //Stop timer once status has changed.
   
   time = t1 - t0; //Time for sensorStatus to change
   if (time == 0){
